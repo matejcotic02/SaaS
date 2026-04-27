@@ -3,6 +3,7 @@ import { Quote } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
 import { FadeInItem, FadeInStagger } from "./FadeIn";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 type Testimonial = {
   name: string;
@@ -139,7 +140,7 @@ export function TestimonialsSection() {
 
   return (
     <section id="testimonials" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader
           title="Designed for businesses that cannot afford missed calls"
           subtitle="Real shops need the phone to work. Here is how owners might talk about that—once you have real customers on CallBay, swap these in."
@@ -147,14 +148,14 @@ export function TestimonialsSection() {
       </div>
 
       {reducedMotion ? (
-        <div className="mx-auto max-w-6xl px-4 sm:px-6">
+        <div className={cn(LANDING_CONTAINER_CLASS)}>
           <TestimonialsStaticGrid />
         </div>
       ) : (
         <TestimonialsMarquee />
       )}
 
-      <div className="mx-auto mt-8 max-w-6xl px-4 text-center sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS, "mt-8 text-center")}>
         <p className="text-xs text-muted-foreground">Example testimonials for layout preview.</p>
       </div>
     </section>

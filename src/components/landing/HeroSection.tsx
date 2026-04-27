@@ -4,13 +4,14 @@ import {
   Phone,
   CalendarCheck,
   UserRound,
-  Bell,
   ArrowRight,
   Activity,
   Clock,
 } from "lucide-react";
 import { PlasticButton } from "@/components/ui/plastic-button";
 import { TextEffect } from "@/components/ui/text-effect";
+import { cn } from "@/lib/utils";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 import { MetricCard } from "./MetricCard";
 
 const HERO_HEADLINE = "Stop missing calls. Let CallBay book your appointments.";
@@ -39,21 +40,38 @@ export function HeroSection() {
         aria-hidden
       />
 
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-28">
+      <div
+        className={cn(
+          LANDING_CONTAINER_CLASS,
+          "relative grid gap-12 py-20 lg:grid-cols-2 lg:items-center lg:gap-16 lg:py-28",
+        )}
+      >
         <div>
           {reducedMotion ? (
             <h1 className={heroTitleClassName}>{HERO_HEADLINE}</h1>
           ) : (
-            <TextEffect
-              as="h1"
-              per="word"
-              preset="blur"
-              loop
-              loopPauseMs={1600}
-              className={heroTitleClassName}
-            >
-              {HERO_HEADLINE}
-            </TextEffect>
+            <div className="relative">
+              {/* Layout-only ghost: reserves the headline's natural height so siblings don't shift while the animated H1 pops out of layout (popLayout) or unmounts during the loop pause. */}
+              <h1
+                aria-hidden
+                className={cn(
+                  heroTitleClassName,
+                  "invisible select-none pointer-events-none",
+                )}
+              >
+                {HERO_HEADLINE}
+              </h1>
+              <TextEffect
+                as="h1"
+                per="word"
+                preset="blur"
+                loop
+                loopPauseMs={1600}
+                className={cn(heroTitleClassName, "absolute inset-0")}
+              >
+                {HERO_HEADLINE}
+              </TextEffect>
+            </div>
           )}
           <p className="mt-5 max-w-xl text-pretty text-sm leading-relaxed text-muted-foreground sm:text-base">
             CallBay answers customer calls, checks availability, books jobs, follows up with leads, sends
@@ -63,16 +81,11 @@ export function HeroSection() {
           <div className="mt-10 flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link to="/signup" className="block w-full max-w-md sm:max-w-[14rem]">
               <PlasticButton asChild size="md" variant="primary" className="w-full">
-                Sign Up
+                Get Started
                 <ArrowRight
                   className="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0"
                   aria-hidden
                 />
-              </PlasticButton>
-            </Link>
-            <Link to="/dashboard" className="block w-full max-w-md sm:max-w-[14rem] sm:w-auto">
-              <PlasticButton asChild size="md" variant="secondary" className="w-full">
-                View Dashboard Demo
               </PlasticButton>
             </Link>
           </div>
@@ -86,8 +99,8 @@ export function HeroSection() {
           </ul>
         </div>
 
-        <div className="relative min-h-[320px] lg:min-h-[420px]">
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-white/5 opacity-80 blur-sm" />
+        <div className="relative ml-auto min-h-[430px] w-full max-w-[560px] overflow-visible sm:min-h-[460px] lg:min-h-[420px]">
+          <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/20 via-transparent to-white/5 opacity-70 blur-sm" />
           <div className="relative z-10 overflow-hidden rounded-2xl border border-[var(--border)] bg-card shadow-[0_24px_80px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.04)]">
             <div className="flex items-center justify-between border-b border-[var(--border)] bg-secondary/60 px-4 py-3">
               <div className="flex items-center gap-2">
@@ -133,29 +146,10 @@ export function HeroSection() {
               </div>
             </div>
 
-            <div className="border-t border-[var(--border)] p-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Recent activity
-              </p>
-              <ul className="mt-2 space-y-2 text-xs text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Phone className="h-3.5 w-3.5 text-primary" />
-                  Inbound call booked
-                </li>
-                <li className="flex items-center gap-2">
-                  <UserRound className="h-3.5 w-3.5 text-primary" />
-                  Lead follow-up scheduled
-                </li>
-                <li className="flex items-center gap-2">
-                  <Bell className="h-3.5 w-3.5 text-primary" />
-                  SMS reminder sent
-                </li>
-                <li className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="h-3 w-3" /> Updated 12s ago
-                  </span>
-                </li>
-              </ul>
+            <div className="border-t border-[var(--border)] px-4 py-3">
+              <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+                <Clock className="h-3 w-3 text-primary" /> Updated 12s ago
+              </span>
             </div>
           </div>
         </div>

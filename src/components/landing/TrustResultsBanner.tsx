@@ -1,4 +1,6 @@
 import { Check } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const chips = [
   "Never miss another inbound lead",
@@ -14,7 +16,7 @@ export function TrustResultsBanner() {
       className="border-b border-[var(--border)] bg-background py-6 sm:py-8"
       aria-label="Key outcomes"
     >
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           {chips.map((t) => (
             <div

@@ -1,4 +1,6 @@
+import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const steps = [
   {
@@ -26,7 +28,7 @@ const steps = [
 export function HowItWorksSection() {
   return (
     <section id="how-it-works" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader title="From missed call to booked job in four steps" />
         <div className="relative mt-16">
           <div

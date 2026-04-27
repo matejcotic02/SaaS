@@ -27,6 +27,17 @@ const VOICE_OPTIONS = [
   { id: "david-british", label: "David - British Accent (male)" },
   { id: "emma-friendly", label: "Emma - Friendly American Voice (female)" },
   { id: "michael-calm", label: "Michael - Calm & Reassuring (male)" },
+  { id: "lisa-warm", label: "Lisa - Warm & Conversational (female)" },
+  { id: "marcus-confident", label: "Marcus - Confident & Direct (male)" },
+  { id: "hannah-energetic", label: "Hannah - Energetic & Upbeat (female)" },
+  { id: "noah-southern", label: "Noah - Soft Southern American (male)" },
+  { id: "sophia-australian", label: "Sophia - Clear Australian (female)" },
+  { id: "daniel-narrator", label: "Daniel - Smooth & Authoritative (male)" },
+  { id: "olivia-youth", label: "Olivia - Young & Approachable (female)" },
+  { id: "carlos-bilingual", label: "Carlos - Bilingual US English / Spanish (male)" },
+  { id: "nina-irish", label: "Nina - Light Irish Lilt (female)" },
+  { id: "ethan-technical", label: "Ethan - Precise & Technical (male)" },
+  { id: "aisha-empathetic", label: "Aisha - Empathetic & Patient (female)" },
 ];
 
 const TIMEZONE_OPTIONS = [

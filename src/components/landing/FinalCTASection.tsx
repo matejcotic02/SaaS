@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Play } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { PlasticButton } from "@/components/ui/plastic-button";
 
 export function FinalCTASection() {
@@ -19,20 +19,17 @@ export function FinalCTASection() {
               Launch your AI phone assistant and manage every call, lead, and booking from one
               dashboard.
             </p>
-            <div className="mt-8 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:justify-center">
-              <Link to="/signup" className="mx-auto block w-full max-w-sm sm:mx-0 sm:max-w-[15rem]">
+            <div className="mt-8">
+              <Link
+                to="/signup"
+                className="mx-auto block w-full max-w-[15rem]"
+              >
                 <PlasticButton asChild size="md" variant="primary" className="w-full">
-                  Sign Up
+                  Get Started
                   <ArrowRight
                     className="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0"
                     aria-hidden
                   />
-                </PlasticButton>
-              </Link>
-              <Link to="/dashboard" className="mx-auto block w-full max-w-sm sm:max-w-[12rem]">
-                <PlasticButton asChild size="md" variant="secondary" className="w-full">
-                  <Play className="h-4 w-4 shrink-0" aria-hidden />
-                  View Demo
                 </PlasticButton>
               </Link>
             </div>

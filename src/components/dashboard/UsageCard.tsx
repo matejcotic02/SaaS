@@ -94,7 +94,7 @@ export function UsageCard() {
           size="sm"
           className="w-full sm:flex-1"
         >
-          <Link to="/billing">Manage Billing</Link>
+          <Link to="/dashboard?view=settings">Manage Billing</Link>
         </Button>
         <Button
           asChild
@@ -102,7 +102,7 @@ export function UsageCard() {
           size="sm"
           className="w-full sm:flex-1"
         >
-          <Link to="/billing">Upgrade Plan</Link>
+          <Link to="/dashboard?view=settings">Upgrade Plan</Link>
         </Button>
       </div>
     </section>

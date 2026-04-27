@@ -100,7 +100,7 @@ export function AgentStatusCard({ compact = false }: AgentStatusCardProps) {
 
       <div className="mt-auto flex flex-col gap-2 pt-6 sm:flex-row">
         <Button asChild variant="default" size="sm" className="w-full sm:w-auto">
-          <Link to="/agent">
+          <Link to="/dashboard?view=agent-settings">
             <Settings2 className="h-4 w-4 shrink-0" aria-hidden />
             Configure Agent
           </Link>
@@ -112,7 +112,7 @@ export function AgentStatusCard({ compact = false }: AgentStatusCardProps) {
             size="sm"
             className="w-full sm:w-auto"
           >
-            <Link to="/agent">
+            <Link to="/dashboard?view=services-pricing">
               <BookOpen className="h-4 w-4 shrink-0" aria-hidden />
               Knowledge Base
             </Link>

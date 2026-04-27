@@ -1,9 +1,15 @@
-import { Link } from "react-router-dom";
 import { ArrowRight, ChevronRight } from "lucide-react";
+import { toast } from "@/components/shared/Toaster";
 import { mockLeads } from "@/data/dashboardMockData";
 
 export function LeadSummary() {
   const { stats, priority } = mockLeads;
+
+  const handleOpenLeads = () => {
+    toast("Leads view coming soon", {
+      description: "Lead inbox and follow-up workflows are next on the roadmap.",
+    });
+  };
 
   return (
     <section
@@ -22,13 +28,14 @@ export function LeadSummary() {
             Snapshot of incoming and prioritized leads
           </p>
         </div>
-        <Link
-          to="/leads"
+        <button
+          type="button"
+          onClick={handleOpenLeads}
           className="group hidden items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary-hover sm:inline-flex"
         >
           Open leads
           <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </Link>
+        </button>
       </header>
 
       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -81,13 +88,14 @@ export function LeadSummary() {
       </div>
 
       <div className="mt-auto pt-5 sm:hidden">
-        <Link
-          to="/leads"
+        <button
+          type="button"
+          onClick={handleOpenLeads}
           className="group inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary-hover"
         >
           Open leads
           <ArrowRight className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-0.5" />
-        </Link>
+        </button>
       </div>
     </section>
   );

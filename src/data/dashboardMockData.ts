@@ -85,7 +85,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Your booking agent has the basics it needs to answer calls.",
     complete: true,
     ctaLabel: "Review Agent",
-    href: "/agent",
+    href: "/dashboard?view=agent-settings",
   },
   {
     id: "phone",
@@ -94,7 +94,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Choose the number CallBay will answer and use for customer callbacks.",
     complete: false,
     ctaLabel: "Set Up Phone Number",
-    href: "/phone",
+    href: "/dashboard?view=settings",
     secondaryNote: "Connect this before forwarding live customer calls.",
   },
   {
@@ -104,7 +104,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Set when your team is open so CallBay knows when to book or transfer.",
     complete: false,
     ctaLabel: "Set Hours",
-    href: "/appointment-settings",
+    href: "/dashboard?view=agent-settings",
   },
   {
     id: "services",
@@ -113,7 +113,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Add your most common services, prices, and appointment durations.",
     complete: false,
     ctaLabel: "Setup Services",
-    href: "/appointment-settings",
+    href: "/dashboard?view=services-pricing",
   },
   {
     id: "transfer",
@@ -122,7 +122,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Add a human fallback number for calls that need your team.",
     complete: false,
     ctaLabel: "Add Transfer Phone",
-    href: "/phone",
+    href: "/dashboard?view=settings",
   },
   {
     id: "sms",
@@ -131,7 +131,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Turn on automated appointment reminders to reduce no-shows.",
     complete: false,
     ctaLabel: "Manage Reminders",
-    href: "/reminders",
+    href: "/dashboard?view=reminders",
   },
   {
     id: "billing",
@@ -140,7 +140,7 @@ export const mockSetupChecklist: SetupItem[] = [
     description: "Your Pro plan is active and ready for launch.",
     complete: true,
     ctaLabel: "View Billing",
-    href: "/billing",
+    href: "/dashboard?view=settings",
   },
 ];
 

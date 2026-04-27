@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
@@ -17,17 +18,13 @@ export function SetupChecklist() {
   const completed = items.filter((i) => i.complete).length;
   const percent = total === 0 ? 0 : Math.round((completed / total) * 100);
   const currentStep = items.find((item) => !item.complete) ?? items[0];
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <section
       className="relative overflow-hidden rounded-2xl border border-white/10 bg-card shadow-[0_8px_32px_rgba(0,0,0,0.35)]"
       aria-labelledby="setup-title"
     >
-      <span
-        className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
-        aria-hidden
-      />
-
       <div className="relative flex flex-col gap-4 border-b border-white/5 px-5 py-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6 sm:px-6">
         <div className="min-w-0">
           <h2
@@ -46,14 +43,22 @@ export function SetupChecklist() {
           </span>
           <button
             type="button"
+            onClick={() => setCollapsed((c) => !c)}
+            aria-expanded={!collapsed}
+            aria-controls="setup-steps"
             className="rounded-full px-2.5 py-1 text-xs font-medium text-neutral-500 transition-colors hover:bg-white/5 hover:text-neutral-300"
           >
-            Hide
+            {collapsed ? "Show steps" : "Hide"}
           </button>
         </div>
       </div>
 
-      <div className="relative px-5 pt-4 sm:px-6">
+      <div
+        className={cn(
+          "relative px-5 sm:px-6",
+          collapsed ? "py-4" : "pt-4",
+        )}
+      >
         <div
           className="h-1.5 w-full overflow-hidden rounded-full bg-white/5"
           role="progressbar"
@@ -69,7 +74,11 @@ export function SetupChecklist() {
         </div>
       </div>
 
-      <ul className="relative space-y-3 p-5 sm:p-6">
+      <ul
+        id="setup-steps"
+        hidden={collapsed}
+        className="relative space-y-3 p-5 sm:p-6"
+      >
         {items.map((item) => (
           <li
             key={item.id}

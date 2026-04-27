@@ -1,11 +1,8 @@
 import { LandingNavbar } from "../components/landing/LandingNavbar";
 import { HeroSection } from "../components/landing/HeroSection";
 import { TrustResultsBanner } from "../components/landing/TrustResultsBanner";
-import { ProblemSection } from "../components/landing/ProblemSection";
-import { SolutionSection } from "../components/landing/SolutionSection";
-import { IndustryUseCasesSection } from "../components/landing/IndustryUseCasesSection";
+import { CallBayOrbitalFlow } from "../components/landing/CallBayOrbitalFlow";
 import { HowItWorksSection } from "../components/landing/HowItWorksSection";
-import { FeaturesSection } from "../components/landing/FeaturesSection";
 import { CustomerCallFlowSection } from "../components/landing/CustomerCallFlowSection";
 import { DashboardPreviewSection } from "../components/landing/DashboardPreviewSection";
 import { ComparisonSection } from "../components/landing/ComparisonSection";
@@ -34,19 +31,10 @@ export function LandingPage() {
             <TrustResultsBanner />
           </FadeIn>
           <FadeIn>
-            <ProblemSection />
-          </FadeIn>
-          <FadeIn>
-            <SolutionSection />
-          </FadeIn>
-          <FadeIn>
-            <IndustryUseCasesSection />
+            <CallBayOrbitalFlow />
           </FadeIn>
           <FadeIn>
             <HowItWorksSection />
-          </FadeIn>
-          <FadeIn>
-            <FeaturesSection />
           </FadeIn>
           <FadeIn>
             <CustomerCallFlowSection />

@@ -140,7 +140,7 @@ export function SignupPage() {
 
       if (signInError) {
         setError(
-          "We couldn't sign you in automatically. In Supabase: Authentication → Providers → Email — disable Confirm email, then try Sign In."
+          "We couldn't log you in automatically. In Supabase: Authentication → Providers → Email — disable Confirm email, then try Login."
         );
         return;
       }
@@ -341,7 +341,7 @@ export function SignupPage() {
                 to="/login"
                 className="font-medium text-primary transition-colors hover:text-primary-hover"
               >
-                Sign In
+                Login
               </Link>
             </p>
             <Link

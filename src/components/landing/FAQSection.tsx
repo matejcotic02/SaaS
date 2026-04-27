@@ -31,7 +31,7 @@ export function FAQSection() {
 
   return (
     <section id="faq" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-2xl px-4 sm:px-6">
+      <div className="mx-auto w-full max-w-2xl px-3 sm:px-5">
         <SectionHeader title="Questions before you let AI answer your phone?" />
         <ul className="mt-10 space-y-2">
           {faqs.map((item, i) => {

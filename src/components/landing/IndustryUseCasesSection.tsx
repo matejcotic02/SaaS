@@ -6,8 +6,10 @@ import {
   Wrench,
   Building2,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
 import { FadeInItem, FadeInStagger } from "./FadeIn";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const cases = [
   {
@@ -51,7 +53,7 @@ const cases = [
 export function IndustryUseCasesSection() {
   return (
     <section id="industry" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader
           title="Built for businesses that depend on phone calls"
           subtitle="CallBay is especially useful for service businesses where every missed call can mean a lost job."

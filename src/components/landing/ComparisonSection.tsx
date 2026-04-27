@@ -1,6 +1,8 @@
 import { X, Check } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
 import { FadeInItem, FadeInStagger } from "./FadeIn";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const without = [
   "Missed calls during busy hours",
@@ -27,7 +29,7 @@ const withMetrics = ["Faster response", "Fewer missed opps", "Consistent booking
 export function ComparisonSection() {
   return (
     <section id="compare" className="border-b border-[var(--border)] py-16 sm:py-24">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader
           title="Why businesses perform better with CallBay"
           subtitle="See the difference between handling calls manually and letting CallBay manage your phone workflow."

@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, ArrowLeft, LogIn, Mail, Lock } from "lucide-react";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import {
@@ -23,8 +23,12 @@ function mapAuthError(message: string): string {
   return message;
 }
 
+type LoginState = { passwordReset?: boolean } | null;
+
 export function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const passwordReset = (location.state as LoginState)?.passwordReset === true;
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -84,6 +88,11 @@ export function LoginPage() {
         subtitle="Sign in to manage your calls, leads, and bookings."
       >
         <form onSubmit={handleSubmit} className="flex w-full flex-col gap-3">
+          {passwordReset && (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-sm text-emerald-200/90">
+              Password updated. You can sign in with your new password.
+            </div>
+          )}
           {error && (
             <div className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">
               {error}
@@ -148,12 +157,12 @@ export function LoginPage() {
           </div>
 
           <div className="flex justify-end">
-            <span
-              className="cursor-not-allowed text-xs font-medium text-muted-foreground opacity-60"
-              title="Password reset coming soon"
+            <Link
+              to="/forgot-password"
+              className="text-xs font-medium text-primary transition-colors hover:text-primary-hover"
             >
               Forgot password?
-            </span>
+            </Link>
           </div>
 
           <PlasticButton
@@ -169,7 +178,7 @@ export function LoginPage() {
                 Signing in...
               </>
             ) : (
-              "Sign In"
+              "Login"
             )}
           </PlasticButton>
 

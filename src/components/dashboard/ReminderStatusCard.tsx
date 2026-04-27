@@ -87,7 +87,7 @@ export function ReminderStatusCard() {
           size="sm"
           className="group w-full sm:w-auto"
         >
-          <Link to="/reminders">
+          <Link to="/dashboard?view=reminders">
             Manage Reminders
             <ArrowRight className="h-4 w-4 shrink-0 transition-transform duration-300 ease-out group-hover:translate-x-1 motion-reduce:group-hover:translate-x-0" />
           </Link>

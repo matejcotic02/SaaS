@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bell, ChevronDown, LogOut, Menu, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, LogOut, Menu, Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatusBadge } from "@/components/shared/StatusBadge";
 import { cn } from "@/lib/utils";
@@ -163,20 +163,6 @@ export function DashboardHeader({ onMenuClick }: DashboardHeaderProps) {
                   ) : null}
                 </div>
                 <div className="p-1">
-                  <button
-                    type="button"
-                    role="menuitem"
-                    disabled
-                    className="flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-sm text-neutral-500"
-                  >
-                    <span className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" aria-hidden />
-                      Settings
-                    </span>
-                    <span className="rounded-full bg-white/5 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-neutral-400">
-                      Soon
-                    </span>
-                  </button>
                   <button
                     type="button"
                     role="menuitem"

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Building2, CheckCircle2, Phone, Sparkles, type LucideIcon } from "lucide-react";
 import * as PricingCard from "@/components/ui/pricing-card";
@@ -12,6 +13,8 @@ const tierIcons: Record<string, LucideIcon> = {
 };
 
 export function PricingCards() {
+  const [selectedTierName, setSelectedTierName] = useState("Pro");
+
   return (
     <div className="relative">
       <div
@@ -26,16 +29,22 @@ export function PricingCards() {
         {PRICING_TIERS.map((tier) => {
           const Icon = tierIcons[tier.name] ?? Phone;
           const isCustom = tier.price === "Custom";
+          const isSelected = selectedTierName === tier.name;
           return (
             <PricingCard.Card
               key={tier.name}
+              onClick={() => setSelectedTierName(tier.name)}
               className={cn(
-                "h-full !max-w-none",
-                tier.highlight &&
-                  "ring-1 ring-primary/45 shadow-[0_0_0_1px_rgba(194,61,72,0.4),0_0_40px_-8px_rgba(194,61,72,0.35)]"
+                "h-full !max-w-none cursor-pointer transition-[box-shadow,ring] duration-300 ease-out",
+                isSelected &&
+                  "ring-1 ring-primary/45 shadow-[0_0_0_1px_rgba(194,61,72,0.4),0_0_40px_-8px_rgba(194,61,72,0.35)]",
               )}
             >
-              <PricingCard.Header>
+              <PricingCard.Header
+                className={cn(
+                  isSelected && "border-primary/35 ring-1 ring-primary/15",
+                )}
+              >
                 <PricingCard.Plan>
                   <PricingCard.PlanName>
                     <Icon className="shrink-0 text-primary" aria-hidden />
@@ -61,11 +70,11 @@ export function PricingCards() {
                   <PlasticButton
                     asChild
                     size="md"
-                    variant={tier.highlight ? "primary" : "secondary"}
+                    variant={isSelected ? "primary" : "secondary"}
                     className={cn(
                       "w-full",
-                      tier.highlight &&
-                        "hover:drop-shadow-[0_0_28px_rgba(248,113,113,0.4)] motion-reduce:hover:drop-shadow-none"
+                      isSelected &&
+                        "hover:drop-shadow-[0_0_28px_rgba(248,113,113,0.4)] motion-reduce:hover:drop-shadow-none",
                     )}
                   >
                     {tier.cta}

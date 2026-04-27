@@ -1,6 +1,8 @@
 import { Phone, Users, CalendarX, CalendarCheck } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
 import { FadeInItem, FadeInStagger } from "./FadeIn";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const stats = [
   {
@@ -28,7 +30,7 @@ const stats = [
 export function ROIValueSection() {
   return (
     <section id="roi" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader
           title="Small improvements in phone handling can create real revenue"
           subtitle="CallBay is built to turn more conversations into jobs—without promising numbers we cannot stand behind."

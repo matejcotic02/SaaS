@@ -45,7 +45,7 @@ export function UpcomingAppointments({ compact = false }: UpcomingAppointmentsPr
           </p>
         </div>
         <Link
-          to="/appointments"
+          to="/dashboard?view=bookings"
           className="group hidden items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary-hover sm:inline-flex"
         >
           {compact ? "View All" : "Manage appointments"}
@@ -145,7 +145,7 @@ export function UpcomingAppointments({ compact = false }: UpcomingAppointmentsPr
         }
       >
         <Link
-          to="/appointments"
+          to="/dashboard?view=bookings"
           className="group inline-flex items-center gap-1 text-xs font-medium text-primary transition-colors hover:text-primary-hover"
         >
           {compact ? "View All" : "Manage appointments"}

@@ -1,7 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   CalendarDays,
-  CircleHelp,
   ClipboardList,
   Bot,
   Settings2,
@@ -9,8 +8,8 @@ import {
   PhoneOutgoing,
   History,
   MessageSquare,
-  CreditCard,
   Home,
+  CircleHelp,
   LogOut,
   Loader2,
   X,
@@ -50,14 +49,14 @@ const navSections: NavSection[] = [
       { label: "Services & Pricing", to: "/dashboard", icon: Settings2, queryParam: "view=services-pricing" },
       { label: "Call History", to: "/calls", icon: History },
       { label: "Outbound Calls", to: "/dashboard", icon: PhoneOutgoing, queryParam: "view=outbound-calls" },
-      { label: "Reminders", to: "/reminders", icon: MessageSquare },
+      { label: "Reminders", to: "/dashboard", icon: MessageSquare, queryParam: "view=reminders" },
     ],
   },
   {
     label: "SUPPORT",
     items: [
-      { label: "Billing", to: "/billing", icon: CreditCard },
-      { label: "Help", to: "/settings", icon: CircleHelp },
+      { label: "Help & Info", to: "/dashboard", icon: CircleHelp, queryParam: "view=info" },
+      { label: "Settings", to: "/dashboard", icon: Settings2, queryParam: "view=settings" },
     ],
   },
 ];
@@ -148,7 +147,7 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
                           "group flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-colors",
                           active
                             ? "bg-primary/15 text-white shadow-[inset_3px_0_0_rgba(194,61,72,0.95)]"
-                            : "text-neutral-400 hover:bg-white/5 hover:text-foreground",
+                            : "text-neutral-400 hover:bg-white/5 hover:text-primary",
                         )}
                         aria-current={active ? "page" : undefined}
                       >
@@ -157,7 +156,7 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
                             "h-3.5 w-3.5 shrink-0 transition-colors",
                             active
                               ? "text-primary"
-                              : "text-neutral-500 group-hover:text-neutral-200",
+                              : "text-neutral-500 group-hover:text-primary",
                           )}
                           aria-hidden
                         />
@@ -176,12 +175,12 @@ function SidebarContent({ onNavigate }: SidebarContentProps) {
           type="button"
           onClick={handleSignOut}
           disabled={signingOut}
-          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-white/5 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-60"
+          className="group flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium text-neutral-400 transition-colors hover:bg-white/5 hover:text-primary disabled:cursor-not-allowed disabled:opacity-60"
         >
           {signingOut ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            <Loader2 className="h-3.5 w-3.5 animate-spin group-hover:text-primary" aria-hidden />
           ) : (
-            <LogOut className="h-3.5 w-3.5" aria-hidden />
+            <LogOut className="h-3.5 w-3.5 group-hover:text-primary" aria-hidden />
           )}
           <span>{signingOut ? "Signing out..." : "Sign Out"}</span>
         </button>
@@ -236,7 +235,7 @@ export function DashboardSidebar({
             type="button"
             onClick={onMobileClose}
             aria-label="Close menu"
-            className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-neutral-300 transition-colors hover:bg-white/10 hover:text-foreground"
+            className="absolute right-3 top-3 z-10 inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 text-neutral-300 transition-colors hover:bg-white/10 hover:text-primary"
           >
             <X className="h-4 w-4" />
           </button>

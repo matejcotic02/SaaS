@@ -21,7 +21,7 @@ export const PRICING_TIERS: PricingTier[] = [
       "SMS reminders",
       "Up to 100 calls/month",
     ],
-    cta: "Sign Up",
+    cta: "Get Started",
     href: "/signup",
   },
   {

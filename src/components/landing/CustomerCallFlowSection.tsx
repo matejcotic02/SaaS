@@ -1,5 +1,7 @@
 import { Phone, Headphones, MessageCircle, CalendarCheck, Send, LayoutDashboard, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { SectionHeader } from "./SectionHeader";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 const steps = [
   { icon: Phone, label: "Customer calls your number" },
@@ -13,7 +15,7 @@ const steps = [
 export function CustomerCallFlowSection() {
   return (
     <section id="call-flow" className="border-b border-[var(--border)] py-16 sm:py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <SectionHeader
           title="What happens when a customer calls?"
           subtitle="A practical flow your team can recognize: from first ring to a clear outcome in CallBay."

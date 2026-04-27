@@ -20,6 +20,9 @@ import { CustomersView } from "@/components/dashboard/CustomersView";
 import { AgentSettingsView } from "@/components/dashboard/AgentSettingsView";
 import { ServicesPricingView } from "@/components/dashboard/ServicesPricingView";
 import { OutboundCallsView } from "@/components/dashboard/OutboundCallsView";
+import { RemindersView } from "@/components/dashboard/RemindersView";
+import { SettingsView } from "@/components/dashboard/SettingsView";
+import { InfoView } from "@/components/dashboard/InfoView";
 import { mockStats } from "@/data/dashboardMockData";
 
 function getFirstName(
@@ -102,6 +105,30 @@ export function DashboardPage() {
     return (
       <DashboardLayout>
         <OutboundCallsView />
+      </DashboardLayout>
+    );
+  }
+
+  if (view === "reminders") {
+    return (
+      <DashboardLayout>
+        <RemindersView />
+      </DashboardLayout>
+    );
+  }
+
+  if (view === "settings") {
+    return (
+      <DashboardLayout>
+        <SettingsView />
+      </DashboardLayout>
+    );
+  }
+
+  if (view === "info") {
+    return (
+      <DashboardLayout>
+        <InfoView />
       </DashboardLayout>
     );
   }

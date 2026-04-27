@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import MagneticDock from "@/components/ui/magnetic-dock";
+import { cn } from "@/lib/utils";
+import { LANDING_CONTAINER_CLASS } from "./landingLayout";
 
 function Logo() {
   return (
@@ -13,10 +16,10 @@ function Logo() {
 }
 
 const product = [
-  { label: "Features", href: "#features" },
+  { label: "Solution", href: "#how-it-works" },
   { label: "Pricing", href: "#pricing" },
   { label: "Dashboard", to: "/dashboard" },
-  { label: "AI Agent", href: "#solution" },
+  { label: "AI Agent", href: "#how-it-works" },
 ];
 
 const company = [
@@ -34,7 +37,7 @@ const legal = [
 export function Footer() {
   return (
     <footer className="border-t border-[var(--border)] bg-background py-12">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className={cn(LANDING_CONTAINER_CLASS)}>
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
           <div>
             <Logo />
@@ -104,9 +107,14 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <p className="mt-10 border-t border-[var(--border)] pt-8 text-center text-xs text-muted-foreground">
-          © 2026 CallBay. All rights reserved.
-        </p>
+        <div className="mt-10 flex w-full justify-center sm:justify-end">
+          <MagneticDock />
+        </div>
+        <div className="mt-6 border-t border-[var(--border)] pt-6 sm:mt-8 sm:pt-8">
+          <p className="text-center text-xs text-muted-foreground sm:text-left">
+            © 2026 CallBay. All rights reserved.
+          </p>
+        </div>
       </div>
     </footer>
   );
