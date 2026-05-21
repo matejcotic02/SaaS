@@ -6,10 +6,12 @@ import {
   type Dispatch,
   type SetStateAction,
 } from "react";
+import { createLatestServicesPricingSaveQueue } from "@/lib/servicesPricingSaveQueue";
 import { supabase } from "@/lib/supabase";
 import {
-  deserializeServicesPricing,
+  getServicesPricingPayloadKey,
   getDefaultServicesPricingState,
+  parseServicesPricingPayload,
   serializeServicesPricing,
   type InfoCardPersisted,
   type ServiceCategory,
@@ -44,49 +46,79 @@ export function useUserServicesPricing(
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const saveSeq = useRef(0);
   const pendingPayloadRef = useRef<string | null>(null);
+  const saveEnabledRef = useRef(false);
+  const saveQueueRef = useRef<ReturnType<
+    typeof createLatestServicesPricingSaveQueue
+  > | null>(null);
 
-  const performSave = useCallback(async (user: string, state: ServicesPricingState) => {
-    const data = serializeServicesPricing(state);
-    const mySeq = ++saveSeq.current;
-    setSaving(true);
-    setSaveError(null);
-    const { error } = await supabase.from("user_services_pricing").upsert(
-      {
-        user_id: user,
-        data,
-        updated_at: new Date().toISOString(),
+  if (!saveQueueRef.current) {
+    saveQueueRef.current = createLatestServicesPricingSaveQueue(
+      async ({ userId: saveUserId, state }) => {
+        const data = serializeServicesPricing(state);
+        const { error } = await supabase.from("user_services_pricing").upsert(
+          {
+            user_id: saveUserId,
+            data,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
+        return { error };
       },
-      { onConflict: "user_id" },
+      {
+        onSavingChange: setSaving,
+        onError: setSaveError,
+        onSaved: (savedAt) => setLastSavedAt(savedAt),
+      },
     );
-    if (saveSeq.current !== mySeq) return;
-    setSaving(false);
-    if (error) {
-      setSaveError(error.message);
+  }
+
+  const queueSave = useCallback(async (user: string, state: ServicesPricingState) => {
+    const key = getServicesPricingPayloadKey(state);
+    const queue = saveQueueRef.current;
+
+    if (!queue || key === queue.getLastSavedKey()) {
       return;
     }
-    setLastSavedAt(new Date());
+
+    if (!saveEnabledRef.current) {
+      setSaveError(
+        "Cloud data could not be loaded. Refresh before editing to avoid overwriting saved pricing.",
+      );
+      return;
+    }
+
+    await queue.enqueue({ userId: user, state, key });
   }, []);
 
   const flushSave = useCallback(async () => {
     if (!userId || !loaded) return;
-    await performSave(userId, { categories, infoCards });
-  }, [userId, loaded, categories, infoCards, performSave]);
+    await queueSave(userId, { categories, infoCards });
+  }, [userId, loaded, categories, infoCards, queueSave]);
 
   useEffect(() => {
+    saveEnabledRef.current = false;
+    saveQueueRef.current?.clear();
+    pendingPayloadRef.current = null;
+
     if (!userId) {
       setLoading(false);
       setLoaded(false);
       setCategories([]);
       setInfoCards([]);
       setLoadError(null);
+      setSaveError(null);
+      setLastSavedAt(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setLoaded(false);
     setLoadError(null);
+    setSaveError(null);
+    setLastSavedAt(null);
 
     void (async () => {
       const { data, error } = await supabase
@@ -103,6 +135,7 @@ export function useUserServicesPricing(
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
+        saveQueueRef.current?.setLastSavedKey(getServicesPricingPayloadKey(d));
         setLoaded(true);
         return;
       }
@@ -111,11 +144,21 @@ export function useUserServicesPricing(
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
+        saveQueueRef.current?.setLastSavedKey(getServicesPricingPayloadKey(d));
+        saveEnabledRef.current = true;
       } else {
-        const parsed = deserializeServicesPricing(data.data);
-        setCategories(parsed.categories);
-        setInfoCards(parsed.infoCards);
-        if (data.updated_at) {
+        const parsed = parseServicesPricingPayload(data.data);
+        setCategories(parsed.state.categories);
+        setInfoCards(parsed.state.infoCards);
+        saveQueueRef.current?.setLastSavedKey(
+          getServicesPricingPayloadKey(parsed.state),
+        );
+        if (!parsed.ok) {
+          setLoadError("Saved services and pricing data could not be loaded safely.");
+        } else {
+          saveEnabledRef.current = true;
+        }
+        if (parsed.ok && data.updated_at) {
           setLastSavedAt(new Date(data.updated_at as string));
         }
       }
@@ -131,16 +174,18 @@ export function useUserServicesPricing(
     if (!userId || !loaded) return;
 
     const state: ServicesPricingState = { categories, infoCards };
-    const key = JSON.stringify(serializeServicesPricing(state));
+    const key = getServicesPricingPayloadKey(state);
+    if (key === saveQueueRef.current?.getLastSavedKey()) return;
+
     pendingPayloadRef.current = key;
 
     const t = window.setTimeout(() => {
       if (pendingPayloadRef.current !== key) return;
-      void performSave(userId, state);
+      void queueSave(userId, state);
     }, SAVE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(t);
-  }, [userId, loaded, categories, infoCards, performSave]);
+  }, [userId, loaded, categories, infoCards, queueSave]);
 
   return {
     categories,
