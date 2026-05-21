@@ -75,6 +75,10 @@ export type ServicesPricingState = {
   infoCards: InfoCardPersisted[];
 };
 
+export type ServicesPricingParseResult =
+  | { ok: true; state: ServicesPricingState }
+  | { ok: false; state: ServicesPricingState };
+
 const STANDARD_FILM_ID = "standard";
 
 function singleFilmCategory(
@@ -252,17 +256,19 @@ function parseInfoCard(v: unknown): InfoCardPersisted | null {
   return { id, title, iconKey: key, content };
 }
 
-/** Parse DB jsonb into state; on any failure returns defaults. */
-export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+/** Parse DB jsonb into state without hiding whether saved data was unreadable. */
+export function parseServicesPricingPayload(raw: unknown): ServicesPricingParseResult {
   const defaults = getDefaultServicesPricingState();
-  if (!isRecord(raw)) return defaults;
+  if (!isRecord(raw)) return { ok: false, state: defaults };
   const version = raw.version;
   if (typeof version !== "number" || version < 1 || version > SERVICES_PRICING_VERSION) {
-    return defaults;
+    return { ok: false, state: defaults };
   }
   const catsRaw = raw.categories;
   const cardsRaw = raw.infoCards;
-  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return defaults;
+  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) {
+    return { ok: false, state: defaults };
+  }
 
   const categories: ServiceCategory[] = [];
   for (const c of catsRaw) {
@@ -275,9 +281,16 @@ export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
     if (card) infoCards.push(card);
   }
 
-  if (categories.length === 0 || infoCards.length === 0) return defaults;
+  if (categories.length === 0 || infoCards.length === 0) {
+    return { ok: false, state: defaults };
+  }
 
-  return { categories, infoCards };
+  return { ok: true, state: { categories, infoCards } };
+}
+
+/** Parse DB jsonb into state; on any failure returns defaults. */
+export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+  return parseServicesPricingPayload(raw).state;
 }
 
 export function serializeServicesPricing(state: ServicesPricingState): ServicesPricingPayload {
@@ -286,6 +299,10 @@ export function serializeServicesPricing(state: ServicesPricingState): ServicesP
     categories: state.categories,
     infoCards: state.infoCards,
   };
+}
+
+export function getServicesPricingPayloadKey(state: ServicesPricingState): string {
+  return JSON.stringify(serializeServicesPricing(state));
 }
 
 export function infoCardIsSaved(card: InfoCardPersisted): boolean {

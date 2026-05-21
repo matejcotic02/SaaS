@@ -424,7 +424,7 @@ export function ServicesPricingView() {
 
   const saveStatusLine = () => {
     if (loadError) {
-      return "Using local defaults — cloud load failed. Edits still save when possible.";
+      return "Cloud load failed. Refresh before editing to avoid overwriting saved pricing.";
     }
     if (!loaded || loading) return "Loading your services…";
     if (saveError) return "Save failed. Check your connection and try again.";
