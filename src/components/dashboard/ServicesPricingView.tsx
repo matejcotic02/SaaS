@@ -424,7 +424,7 @@ export function ServicesPricingView() {
 
   const saveStatusLine = () => {
     if (loadError) {
-      return "Using local defaults — cloud load failed. Edits still save when possible.";
+      return "Using local defaults — cloud sync is paused to protect saved data.";
     }
     if (!loaded || loading) return "Loading your services…";
     if (saveError) return "Save failed. Check your connection and try again.";

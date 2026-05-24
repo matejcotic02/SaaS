@@ -75,6 +75,11 @@ export type ServicesPricingState = {
   infoCards: InfoCardPersisted[];
 };
 
+export type ServicesPricingDeserializeResult = {
+  state: ServicesPricingState;
+  usedFallback: boolean;
+};
+
 const STANDARD_FILM_ID = "standard";
 
 function singleFilmCategory(
@@ -253,16 +258,19 @@ function parseInfoCard(v: unknown): InfoCardPersisted | null {
 }
 
 /** Parse DB jsonb into state; on any failure returns defaults. */
-export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+export function deserializeServicesPricingResult(
+  raw: unknown,
+): ServicesPricingDeserializeResult {
   const defaults = getDefaultServicesPricingState();
-  if (!isRecord(raw)) return defaults;
+  const fallback = { state: defaults, usedFallback: true };
+  if (!isRecord(raw)) return fallback;
   const version = raw.version;
   if (typeof version !== "number" || version < 1 || version > SERVICES_PRICING_VERSION) {
-    return defaults;
+    return fallback;
   }
   const catsRaw = raw.categories;
   const cardsRaw = raw.infoCards;
-  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return defaults;
+  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return fallback;
 
   const categories: ServiceCategory[] = [];
   for (const c of catsRaw) {
@@ -275,9 +283,13 @@ export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
     if (card) infoCards.push(card);
   }
 
-  if (categories.length === 0 || infoCards.length === 0) return defaults;
+  if (categories.length === 0 || infoCards.length === 0) return fallback;
 
-  return { categories, infoCards };
+  return { state: { categories, infoCards }, usedFallback: false };
+}
+
+export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+  return deserializeServicesPricingResult(raw).state;
 }
 
 export function serializeServicesPricing(state: ServicesPricingState): ServicesPricingPayload {
