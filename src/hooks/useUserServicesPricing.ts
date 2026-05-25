@@ -69,26 +69,31 @@ export function useUserServicesPricing(
         return;
       }
 
-      const savedAt = new Date();
-      const { error } = await supabase.from("user_services_pricing").upsert(
-        {
-          user_id: user,
-          data,
-          updated_at: savedAt.toISOString(),
-        },
-        { onConflict: "user_id" },
-      );
+      try {
+        const savedAt = new Date();
+        const { error } = await supabase.from("user_services_pricing").upsert(
+          {
+            user_id: user,
+            data,
+            updated_at: savedAt.toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
 
-      if (saveSeq.current !== mySeq) return;
-      if (error) {
-        setSaveError(error.message);
-        return;
+        if (saveSeq.current !== mySeq) return;
+        if (error) {
+          setSaveError(error.message);
+          return;
+        }
+        lastPersistedPayloadRef.current = key;
+        if (pendingPayloadRef.current === key) {
+          pendingPayloadRef.current = null;
+        }
+        setLastSavedAt(savedAt);
+      } catch (error) {
+        if (saveSeq.current !== mySeq) return;
+        setSaveError(error instanceof Error ? error.message : "Could not save services pricing.");
       }
-      lastPersistedPayloadRef.current = key;
-      if (pendingPayloadRef.current === key) {
-        pendingPayloadRef.current = null;
-      }
-      setLastSavedAt(savedAt);
     };
 
     const queuedSave = saveQueueRef.current.then(save, save);
