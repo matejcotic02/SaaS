@@ -75,6 +75,10 @@ export type ServicesPricingState = {
   infoCards: InfoCardPersisted[];
 };
 
+export type DeserializeServicesPricingResult =
+  | { ok: true; state: ServicesPricingState }
+  | { ok: false; state: ServicesPricingState; error: string };
+
 const STANDARD_FILM_ID = "standard";
 
 function singleFilmCategory(
@@ -252,17 +256,41 @@ function parseInfoCard(v: unknown): InfoCardPersisted | null {
   return { id, title, iconKey: key, content };
 }
 
-/** Parse DB jsonb into state; on any failure returns defaults. */
-export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+/**
+ * Parse DB jsonb into state and report whether defaults were used as a fallback.
+ * Callers that persist back to the same row must avoid auto-saving fallback data.
+ */
+export function parseServicesPricingPayload(
+  raw: unknown,
+): DeserializeServicesPricingResult {
   const defaults = getDefaultServicesPricingState();
-  if (!isRecord(raw)) return defaults;
+  if (!isRecord(raw)) {
+    return {
+      ok: false,
+      state: defaults,
+      error: "Stored services pricing data is invalid.",
+    };
+  }
   const version = raw.version;
   if (typeof version !== "number" || version < 1 || version > SERVICES_PRICING_VERSION) {
-    return defaults;
+    return {
+      ok: false,
+      state: defaults,
+      error:
+        typeof version === "number" && version > SERVICES_PRICING_VERSION
+          ? "Stored services pricing data was saved by a newer app version."
+          : "Stored services pricing data has an invalid version.",
+    };
   }
   const catsRaw = raw.categories;
   const cardsRaw = raw.infoCards;
-  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return defaults;
+  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) {
+    return {
+      ok: false,
+      state: defaults,
+      error: "Stored services pricing data is missing required sections.",
+    };
+  }
 
   const categories: ServiceCategory[] = [];
   for (const c of catsRaw) {
@@ -275,9 +303,20 @@ export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
     if (card) infoCards.push(card);
   }
 
-  if (categories.length === 0 || infoCards.length === 0) return defaults;
+  if (categories.length === 0 || infoCards.length === 0) {
+    return {
+      ok: false,
+      state: defaults,
+      error: "Stored services pricing data has no readable services or info cards.",
+    };
+  }
 
-  return { categories, infoCards };
+  return { ok: true, state: { categories, infoCards } };
+}
+
+/** Parse DB jsonb into state; on any failure returns defaults. */
+export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+  return parseServicesPricingPayload(raw).state;
 }
 
 export function serializeServicesPricing(state: ServicesPricingState): ServicesPricingPayload {
