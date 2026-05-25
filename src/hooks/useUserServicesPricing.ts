@@ -44,6 +44,8 @@ export function useUserServicesPricing(
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const mountedRef = useRef(false);
+  const loadedRef = useRef(loaded);
   const saveSeq = useRef(0);
   const loadSeq = useRef(0);
   const activeUserRef = useRef<string | null>(userId ?? null);
@@ -51,13 +53,16 @@ export function useUserServicesPricing(
   const lastPersistedPayloadRef = useRef<string | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
   const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const latestStateRef = useRef<ServicesPricingState>({ categories: [], infoCards: [] });
 
   const performSave = useCallback(async (user: string, state: ServicesPricingState) => {
     const data = serializeServicesPricing(state);
     const key = JSON.stringify(data);
     const mySeq = ++saveSeq.current;
-    setSaving(true);
-    setSaveError(null);
+    if (mountedRef.current) {
+      setSaving(true);
+      setSaveError(null);
+    }
 
     const save = async () => {
       if (
@@ -82,17 +87,25 @@ export function useUserServicesPricing(
 
         if (saveSeq.current !== mySeq) return;
         if (error) {
-          setSaveError(error.message);
+          if (mountedRef.current) {
+            setSaveError(error.message);
+          }
           return;
         }
         lastPersistedPayloadRef.current = key;
         if (pendingPayloadRef.current === key) {
           pendingPayloadRef.current = null;
         }
-        setLastSavedAt(savedAt);
+        if (mountedRef.current) {
+          setLastSavedAt(savedAt);
+        }
       } catch (error) {
         if (saveSeq.current !== mySeq) return;
-        setSaveError(error instanceof Error ? error.message : "Could not save services pricing.");
+        if (mountedRef.current) {
+          setSaveError(
+            error instanceof Error ? error.message : "Could not save services pricing.",
+          );
+        }
       }
     };
 
@@ -100,10 +113,38 @@ export function useUserServicesPricing(
     saveQueueRef.current = queuedSave.catch(() => undefined);
     await queuedSave;
 
-    if (saveSeq.current === mySeq) {
+    if (mountedRef.current && saveSeq.current === mySeq) {
       setSaving(false);
     }
   }, []);
+
+  useEffect(() => {
+    latestStateRef.current = { categories, infoCards };
+    loadedRef.current = loaded;
+  }, [categories, infoCards, loaded]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+
+    return () => {
+      mountedRef.current = false;
+      const user = activeUserRef.current;
+      const state = latestStateRef.current;
+      const key = JSON.stringify(serializeServicesPricing(state));
+
+      if (
+        !user ||
+        !loadedRef.current ||
+        !canPersistRef.current ||
+        lastPersistedPayloadRef.current === key
+      ) {
+        return;
+      }
+
+      pendingPayloadRef.current = key;
+      void performSave(user, state);
+    };
+  }, [performSave]);
 
   const flushSave = useCallback(async () => {
     if (!userId || !loaded || !canPersistRef.current || activeUserRef.current !== userId) {
