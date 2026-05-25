@@ -8,8 +8,8 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-  deserializeServicesPricing,
   getDefaultServicesPricingState,
+  parseServicesPricingPayload,
   serializeServicesPricing,
   type InfoCardPersisted,
   type ServiceCategory,
@@ -45,48 +45,103 @@ export function useUserServicesPricing(
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const saveSeq = useRef(0);
+  const loadSeq = useRef(0);
+  const activeUserRef = useRef<string | null>(userId ?? null);
+  const canPersistRef = useRef(false);
+  const lastPersistedPayloadRef = useRef<string | null>(null);
   const pendingPayloadRef = useRef<string | null>(null);
+  const saveQueueRef = useRef<Promise<void>>(Promise.resolve());
 
   const performSave = useCallback(async (user: string, state: ServicesPricingState) => {
     const data = serializeServicesPricing(state);
+    const key = JSON.stringify(data);
     const mySeq = ++saveSeq.current;
     setSaving(true);
     setSaveError(null);
-    const { error } = await supabase.from("user_services_pricing").upsert(
-      {
-        user_id: user,
-        data,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    );
-    if (saveSeq.current !== mySeq) return;
-    setSaving(false);
-    if (error) {
-      setSaveError(error.message);
-      return;
+
+    const save = async () => {
+      if (
+        !canPersistRef.current ||
+        activeUserRef.current !== user ||
+        lastPersistedPayloadRef.current === key ||
+        pendingPayloadRef.current !== key
+      ) {
+        return;
+      }
+
+      const savedAt = new Date();
+      const { error } = await supabase.from("user_services_pricing").upsert(
+        {
+          user_id: user,
+          data,
+          updated_at: savedAt.toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+
+      if (saveSeq.current !== mySeq) return;
+      if (error) {
+        setSaveError(error.message);
+        return;
+      }
+      lastPersistedPayloadRef.current = key;
+      if (pendingPayloadRef.current === key) {
+        pendingPayloadRef.current = null;
+      }
+      setLastSavedAt(savedAt);
+    };
+
+    const queuedSave = saveQueueRef.current.then(save, save);
+    saveQueueRef.current = queuedSave.catch(() => undefined);
+    await queuedSave;
+
+    if (saveSeq.current === mySeq) {
+      setSaving(false);
     }
-    setLastSavedAt(new Date());
   }, []);
 
   const flushSave = useCallback(async () => {
-    if (!userId || !loaded) return;
-    await performSave(userId, { categories, infoCards });
+    if (!userId || !loaded || !canPersistRef.current || activeUserRef.current !== userId) {
+      return;
+    }
+    const state = { categories, infoCards };
+    const key = JSON.stringify(serializeServicesPricing(state));
+    if (lastPersistedPayloadRef.current === key) return;
+    pendingPayloadRef.current = key;
+    await performSave(userId, state);
   }, [userId, loaded, categories, infoCards, performSave]);
 
   useEffect(() => {
     if (!userId) {
+      activeUserRef.current = null;
+      canPersistRef.current = false;
+      lastPersistedPayloadRef.current = null;
+      pendingPayloadRef.current = null;
+      saveSeq.current += 1;
       setLoading(false);
       setLoaded(false);
       setCategories([]);
       setInfoCards([]);
       setLoadError(null);
+      setSaveError(null);
+      setLastSavedAt(null);
       return;
     }
 
     let cancelled = false;
+    const myLoadSeq = ++loadSeq.current;
+    activeUserRef.current = userId;
+    canPersistRef.current = false;
+    lastPersistedPayloadRef.current = null;
+    pendingPayloadRef.current = null;
+    saveSeq.current += 1;
     setLoading(true);
+    setLoaded(false);
+    setCategories([]);
+    setInfoCards([]);
     setLoadError(null);
+    setSaveError(null);
+    setLastSavedAt(null);
 
     void (async () => {
       const { data, error } = await supabase
@@ -95,7 +150,9 @@ export function useUserServicesPricing(
         .eq("user_id", userId)
         .maybeSingle();
 
-      if (cancelled) return;
+      if (cancelled || loadSeq.current !== myLoadSeq || activeUserRef.current !== userId) {
+        return;
+      }
       setLoading(false);
 
       if (error) {
@@ -103,22 +160,29 @@ export function useUserServicesPricing(
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
-        setLoaded(true);
         return;
       }
 
+      let nextState: ServicesPricingState;
       if (!data) {
-        const d = getDefaultServicesPricingState();
-        setCategories(d.categories);
-        setInfoCards(d.infoCards);
+        nextState = getDefaultServicesPricingState();
       } else {
-        const parsed = deserializeServicesPricing(data.data);
-        setCategories(parsed.categories);
-        setInfoCards(parsed.infoCards);
+        const parsed = parseServicesPricingPayload(data.data);
+        nextState = parsed.state;
+        if (!parsed.ok) {
+          setLoadError(parsed.error);
+          setCategories(nextState.categories);
+          setInfoCards(nextState.infoCards);
+          return;
+        }
         if (data.updated_at) {
           setLastSavedAt(new Date(data.updated_at as string));
         }
       }
+      setCategories(nextState.categories);
+      setInfoCards(nextState.infoCards);
+      lastPersistedPayloadRef.current = JSON.stringify(serializeServicesPricing(nextState));
+      canPersistRef.current = true;
       setLoaded(true);
     })();
 
@@ -128,10 +192,18 @@ export function useUserServicesPricing(
   }, [userId]);
 
   useEffect(() => {
-    if (!userId || !loaded) return;
+    if (!userId || !loaded || !canPersistRef.current || activeUserRef.current !== userId) {
+      return;
+    }
 
     const state: ServicesPricingState = { categories, infoCards };
     const key = JSON.stringify(serializeServicesPricing(state));
+    if (lastPersistedPayloadRef.current === key) {
+      if (pendingPayloadRef.current === key) {
+        pendingPayloadRef.current = null;
+      }
+      return;
+    }
     pendingPayloadRef.current = key;
 
     const t = window.setTimeout(() => {
