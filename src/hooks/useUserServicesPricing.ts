@@ -8,15 +8,17 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-  deserializeServicesPricing,
   getDefaultServicesPricingState,
   serializeServicesPricing,
+  tryDeserializeServicesPricing,
   type InfoCardPersisted,
   type ServiceCategory,
   type ServicesPricingState,
 } from "@/types/servicesPricing";
 
 const SAVE_DEBOUNCE_MS = 850;
+const UNSAFE_LOAD_MESSAGE =
+  "Cloud services & pricing could not be loaded safely. Refresh before editing to avoid overwriting saved data.";
 
 export type UseUserServicesPricingResult = {
   categories: ServiceCategory[];
@@ -46,38 +48,62 @@ export function useUserServicesPricing(
 
   const saveSeq = useRef(0);
   const pendingPayloadRef = useRef<string | null>(null);
+  const lastPersistedPayloadRef = useRef<string | null>(null);
+  const persistenceEnabledRef = useRef(false);
 
   const performSave = useCallback(async (user: string, state: ServicesPricingState) => {
     const data = serializeServicesPricing(state);
+    const payloadKey = JSON.stringify(data);
     const mySeq = ++saveSeq.current;
     setSaving(true);
     setSaveError(null);
-    const { error } = await supabase.from("user_services_pricing").upsert(
-      {
-        user_id: user,
-        data,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id" },
-    );
-    if (saveSeq.current !== mySeq) return;
-    setSaving(false);
-    if (error) {
-      setSaveError(error.message);
-      return;
+
+    try {
+      const { error } = await supabase.from("user_services_pricing").upsert(
+        {
+          user_id: user,
+          data,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" },
+      );
+      if (saveSeq.current !== mySeq) return;
+      if (error) {
+        setSaveError(error.message);
+        return;
+      }
+      lastPersistedPayloadRef.current = payloadKey;
+      setLastSavedAt(new Date());
+    } catch (error) {
+      if (saveSeq.current !== mySeq) return;
+      setSaveError(error instanceof Error ? error.message : "Save failed.");
+    } finally {
+      if (saveSeq.current === mySeq) {
+        setSaving(false);
+      }
     }
-    setLastSavedAt(new Date());
   }, []);
 
   const flushSave = useCallback(async () => {
-    if (!userId || !loaded) return;
-    await performSave(userId, { categories, infoCards });
+    if (!userId || !loaded || !persistenceEnabledRef.current) return;
+    const state: ServicesPricingState = { categories, infoCards };
+    const key = JSON.stringify(serializeServicesPricing(state));
+    if (lastPersistedPayloadRef.current === key) return;
+    await performSave(userId, state);
   }, [userId, loaded, categories, infoCards, performSave]);
 
   useEffect(() => {
+    saveSeq.current += 1;
+    persistenceEnabledRef.current = false;
+    lastPersistedPayloadRef.current = null;
+    pendingPayloadRef.current = null;
+    setLoaded(false);
+    setSaving(false);
+    setSaveError(null);
+    setLastSavedAt(null);
+
     if (!userId) {
       setLoading(false);
-      setLoaded(false);
       setCategories([]);
       setInfoCards([]);
       setLoadError(null);
@@ -99,7 +125,7 @@ export function useUserServicesPricing(
       setLoading(false);
 
       if (error) {
-        setLoadError(error.message);
+        setLoadError(error.message || UNSAFE_LOAD_MESSAGE);
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
@@ -111,10 +137,21 @@ export function useUserServicesPricing(
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
+        persistenceEnabledRef.current = true;
       } else {
-        const parsed = deserializeServicesPricing(data.data);
+        const parsed = tryDeserializeServicesPricing(data.data);
+        if (!parsed) {
+          setLoadError(UNSAFE_LOAD_MESSAGE);
+          const d = getDefaultServicesPricingState();
+          setCategories(d.categories);
+          setInfoCards(d.infoCards);
+          setLoaded(true);
+          return;
+        }
         setCategories(parsed.categories);
         setInfoCards(parsed.infoCards);
+        lastPersistedPayloadRef.current = JSON.stringify(serializeServicesPricing(parsed));
+        persistenceEnabledRef.current = true;
         if (data.updated_at) {
           setLastSavedAt(new Date(data.updated_at as string));
         }
@@ -128,10 +165,11 @@ export function useUserServicesPricing(
   }, [userId]);
 
   useEffect(() => {
-    if (!userId || !loaded) return;
+    if (!userId || !loaded || !persistenceEnabledRef.current) return;
 
     const state: ServicesPricingState = { categories, infoCards };
     const key = JSON.stringify(serializeServicesPricing(state));
+    if (lastPersistedPayloadRef.current === key) return;
     pendingPayloadRef.current = key;
 
     const t = window.setTimeout(() => {
