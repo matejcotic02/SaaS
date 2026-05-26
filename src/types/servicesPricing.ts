@@ -252,17 +252,15 @@ function parseInfoCard(v: unknown): InfoCardPersisted | null {
   return { id, title, iconKey: key, content };
 }
 
-/** Parse DB jsonb into state; on any failure returns defaults. */
-export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
-  const defaults = getDefaultServicesPricingState();
-  if (!isRecord(raw)) return defaults;
+export function tryDeserializeServicesPricing(raw: unknown): ServicesPricingState | null {
+  if (!isRecord(raw)) return null;
   const version = raw.version;
   if (typeof version !== "number" || version < 1 || version > SERVICES_PRICING_VERSION) {
-    return defaults;
+    return null;
   }
   const catsRaw = raw.categories;
   const cardsRaw = raw.infoCards;
-  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return defaults;
+  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return null;
 
   const categories: ServiceCategory[] = [];
   for (const c of catsRaw) {
@@ -275,9 +273,14 @@ export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
     if (card) infoCards.push(card);
   }
 
-  if (categories.length === 0 || infoCards.length === 0) return defaults;
+  if (categories.length === 0 || infoCards.length === 0) return null;
 
   return { categories, infoCards };
+}
+
+/** Parse DB jsonb into state; on any failure returns defaults. */
+export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+  return tryDeserializeServicesPricing(raw) ?? getDefaultServicesPricingState();
 }
 
 export function serializeServicesPricing(state: ServicesPricingState): ServicesPricingPayload {
