@@ -8,8 +8,8 @@ import {
 } from "react";
 import { supabase } from "@/lib/supabase";
 import {
-  deserializeServicesPricing,
   getDefaultServicesPricingState,
+  parseServicesPricingPayload,
   serializeServicesPricing,
   type InfoCardPersisted,
   type ServiceCategory,
@@ -43,6 +43,7 @@ export function useUserServicesPricing(
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [canPersist, setCanPersist] = useState(false);
 
   const saveSeq = useRef(0);
   const pendingPayloadRef = useRef<string | null>(null);
@@ -70,23 +71,29 @@ export function useUserServicesPricing(
   }, []);
 
   const flushSave = useCallback(async () => {
-    if (!userId || !loaded) return;
+    if (!userId || !loaded || !canPersist) return;
     await performSave(userId, { categories, infoCards });
-  }, [userId, loaded, categories, infoCards, performSave]);
+  }, [userId, loaded, canPersist, categories, infoCards, performSave]);
 
   useEffect(() => {
     if (!userId) {
       setLoading(false);
       setLoaded(false);
+      setCanPersist(false);
       setCategories([]);
       setInfoCards([]);
       setLoadError(null);
+      setSaveError(null);
+      setLastSavedAt(null);
       return;
     }
 
     let cancelled = false;
     setLoading(true);
+    setLoaded(false);
+    setCanPersist(false);
     setLoadError(null);
+    setSaveError(null);
 
     void (async () => {
       const { data, error } = await supabase
@@ -111,10 +118,22 @@ export function useUserServicesPricing(
         const d = getDefaultServicesPricingState();
         setCategories(d.categories);
         setInfoCards(d.infoCards);
+        setCanPersist(true);
       } else {
-        const parsed = deserializeServicesPricing(data.data);
+        const parsed = parseServicesPricingPayload(data.data);
+        if (!parsed) {
+          setLoadError(
+            "Saved services and pricing data could not be loaded safely. Refresh before editing.",
+          );
+          const d = getDefaultServicesPricingState();
+          setCategories(d.categories);
+          setInfoCards(d.infoCards);
+          setLoaded(true);
+          return;
+        }
         setCategories(parsed.categories);
         setInfoCards(parsed.infoCards);
+        setCanPersist(true);
         if (data.updated_at) {
           setLastSavedAt(new Date(data.updated_at as string));
         }
@@ -128,7 +147,7 @@ export function useUserServicesPricing(
   }, [userId]);
 
   useEffect(() => {
-    if (!userId || !loaded) return;
+    if (!userId || !loaded || !canPersist) return;
 
     const state: ServicesPricingState = { categories, infoCards };
     const key = JSON.stringify(serializeServicesPricing(state));
@@ -140,7 +159,7 @@ export function useUserServicesPricing(
     }, SAVE_DEBOUNCE_MS);
 
     return () => window.clearTimeout(t);
-  }, [userId, loaded, categories, infoCards, performSave]);
+  }, [userId, loaded, canPersist, categories, infoCards, performSave]);
 
   return {
     categories,

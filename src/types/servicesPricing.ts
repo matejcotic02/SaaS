@@ -209,7 +209,8 @@ function parseFilm(v: unknown): ServiceFilm | null {
   const packages: ServicePackage[] = [];
   for (const p of pkgs) {
     const pkg = parsePackage(p);
-    if (pkg) packages.push(pkg);
+    if (!pkg) return null;
+    packages.push(pkg);
   }
   return { id, name, packages };
 }
@@ -229,7 +230,8 @@ function parseCategory(v: unknown): ServiceCategory | null {
   const parsedFilms: ServiceFilm[] = [];
   for (const f of films) {
     const film = parseFilm(f);
-    if (film) parsedFilms.push(film);
+    if (!film) return null;
+    parsedFilms.push(film);
   }
   if (parsedFilms.length === 0) {
     parsedFilms.push({ id: STANDARD_FILM_ID, name: "Standard", packages: [] });
@@ -248,36 +250,44 @@ function parseInfoCard(v: unknown): InfoCardPersisted | null {
   ) {
     return null;
   }
-  const key: InfoCardIconKey = isInfoCardIconKey(iconKey) ? iconKey : "filetext";
-  return { id, title, iconKey: key, content };
+  if (!isInfoCardIconKey(iconKey)) return null;
+  return { id, title, iconKey, content };
 }
 
-/** Parse DB jsonb into state; on any failure returns defaults. */
-export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
-  const defaults = getDefaultServicesPricingState();
-  if (!isRecord(raw)) return defaults;
+/** Parse DB jsonb into state only when the payload is safe to persist again. */
+export function parseServicesPricingPayload(
+  raw: unknown,
+): ServicesPricingState | null {
+  if (!isRecord(raw)) return null;
   const version = raw.version;
   if (typeof version !== "number" || version < 1 || version > SERVICES_PRICING_VERSION) {
-    return defaults;
+    return null;
   }
   const catsRaw = raw.categories;
   const cardsRaw = raw.infoCards;
-  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return defaults;
+  if (!Array.isArray(catsRaw) || !Array.isArray(cardsRaw)) return null;
 
   const categories: ServiceCategory[] = [];
   for (const c of catsRaw) {
     const cat = parseCategory(c);
-    if (cat) categories.push(cat);
+    if (!cat) return null;
+    categories.push(cat);
   }
   const infoCards: InfoCardPersisted[] = [];
   for (const c of cardsRaw) {
     const card = parseInfoCard(c);
-    if (card) infoCards.push(card);
+    if (!card) return null;
+    infoCards.push(card);
   }
 
-  if (categories.length === 0 || infoCards.length === 0) return defaults;
+  if (categories.length === 0 || infoCards.length === 0) return null;
 
   return { categories, infoCards };
+}
+
+/** Parse DB jsonb into state; on any failure returns defaults. */
+export function deserializeServicesPricing(raw: unknown): ServicesPricingState {
+  return parseServicesPricingPayload(raw) ?? getDefaultServicesPricingState();
 }
 
 export function serializeServicesPricing(state: ServicesPricingState): ServicesPricingPayload {
