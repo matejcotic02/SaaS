@@ -424,7 +424,7 @@ export function ServicesPricingView() {
 
   const saveStatusLine = () => {
     if (loadError) {
-      return "Using local defaults — cloud load failed. Edits still save when possible.";
+      return "Cloud load failed. Showing local defaults only; refresh before editing.";
     }
     if (!loaded || loading) return "Loading your services…";
     if (saveError) return "Save failed. Check your connection and try again.";
@@ -740,7 +740,7 @@ export function ServicesPricingView() {
             <div className="flex items-center gap-2">
               {saving ? (
                 <Loader2 className="h-4 w-4 animate-spin text-emerald-400" aria-hidden />
-              ) : saveError ? (
+              ) : saveError || loadError ? (
                 <X className="h-4 w-4 text-amber-400" aria-hidden />
               ) : (
                 <Check className="h-4 w-4 text-emerald-400" aria-hidden />
@@ -748,10 +748,16 @@ export function ServicesPricingView() {
               <span
                 className={cn(
                   "text-sm font-medium",
-                  saveError ? "text-amber-400" : "text-emerald-400",
+                  saveError || loadError ? "text-amber-400" : "text-emerald-400",
                 )}
               >
-                {saveError ? "Save issue" : saving ? "Saving…" : "Cloud sync"}
+                {loadError
+                  ? "Sync paused"
+                  : saveError
+                    ? "Save issue"
+                    : saving
+                      ? "Saving…"
+                      : "Cloud sync"}
               </span>
             </div>
             {saveError ? (
